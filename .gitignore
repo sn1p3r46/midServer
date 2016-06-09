@@ -1,2 +1,4 @@
 /bin
 *OLD*
+*.log
+node_modules
