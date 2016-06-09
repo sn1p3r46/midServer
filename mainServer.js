@@ -5,7 +5,7 @@
 #	serve data collected from other servers through the
 #   nnode.js module.
 #
-#	Usage: nodejs nnonde.js
+#	Usage: npm start
 #
 #	AUTHOR: Andrea Galloni andreagalloni92@gmail.com
 */
@@ -15,17 +15,16 @@ var thePort="8001";
 
 var http = require("http");
 var url = require('url');
-var fs = require('fs');
-var socketsClient = require('./socketsClient.js');
+var socketsClient = require('./socketsClient');
 
 var server = http.createServer(function(request, response){
   var path = url.parse(request.url).pathname;
   switch(path){
       case '/':
             socketsClient.getData(function (data) {
-            response.writeHead(200, {'Content-Type': 'text'});
-            response.write(JSON.stringify(data));
-            response.end();
+              response.writeHead(200, {'Content-Type': 'text'});
+              response.write(JSON.stringify(data));
+              response.end();
             });
 
           break;
