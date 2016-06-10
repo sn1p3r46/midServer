@@ -1,43 +1,44 @@
-var spawn = require('child_process').spawn;
 var net = require('net');
-var cfv = require('./confVars');
+var fs = require('fs');
+var Sensor = require('./Sensor');
 
-//var result = [];
+module.exports = function(conf) {
+    fs.readFile(conf || './conf_vars.json', 'utf8', function(err, data) {
+        if (err) throw new Error("Can't read configuration file");
+        else {
+            var cfv = JSON.parse(data);
+            return {
+                getData: function getStationsData(callback) {
+                    var result = [];
+                    var callback_manager = function(data) {
+                        result.push(data);
+                        if (result.length == cfv.length)
+                            callback(result);
+                    };
 
+                    for (var i = 0; i < cfv.length; i++) {
+                        fireSocket(cfv[i], callback_manager);
+                    }
 
-function getStationsData(callback) {
-    var instances = cfv.sensorArr.length;
-    var result = [];
-    var callback_manager = function(data) {
-        result.push(data);
-        if (result.length == instances)
-            callback(result);
-    };
-
-    if (instances == cfv.addrArr.length == cfv.portArr.length) {
-        for (var i = 0; i < instances; i++) {
-            fireSocket(cfv.addrArr[i], cfv.portArr[i], cfv.sensorArr[i], callback_manager);
+                }
+            };
         }
-    } else {
-        console.log("sensorArr: ", sensorArr.length, "\naddrArr: ", addrArr.length,
-            "\nportArr: ", portArr.length);
-        console.log("Those arrays should be of equal length");
-        throw new Error("ParametersError: Data Array Length not Consistent");
-    }
-}
+    });
 
-function fireSocket(addr, port, sensorObj, callback) {
-    console.log("Socket Fired @ ", addr, port);
+};
+
+function fireSocket(sensorObj, callback) {
+    console.log("Socket Fired @ ", sensorObj.ip, sensorObj.port);
     var client = new net.Socket({
         allowHalfOpen: true
     });
-    client.connect(port, addr, function() {
+
+    client.connect(sensorObj.port, sensorObj.ip, function() {
         client.write('Get Infos');
     });
 
     client.on('data', function(data) {
-        var payload = JSON.parse(data);
-        callback(payload);
+        callback(new Sensor(sensorObj.name, sensorObj.x, sensorObj.y, JSON.parse(data)));
         client.end();
     });
 
@@ -45,5 +46,3 @@ function fireSocket(addr, port, sensorObj, callback) {
         console.log('Connection closed');
     });
 }
-
-exports.getData = getStationsData;
