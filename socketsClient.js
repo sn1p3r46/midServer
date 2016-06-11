@@ -2,9 +2,10 @@ var net = require('net');
 var fs = require('fs');
 var Sensor = require('./Sensor');
 
+
 module.exports = function(conf) {
-    fs.readFile(conf || './conf_vars.json', 'utf8', function(err, data) {
-        if (err) throw new Error("Can't read configuration file");
+    var data = fs.readFileSync('./conf_vars.json', 'utf8');
+        if (!data) throw new Error("Can't read configuration file");
         else {
             var cfv = JSON.parse(data);
             return {
@@ -23,15 +24,12 @@ module.exports = function(conf) {
                 }
             };
         }
-    });
-
 };
+
 
 function fireSocket(sensorObj, callback) {
     console.log("Socket Fired @ ", sensorObj.ip, sensorObj.port);
-    var client = new net.Socket({
-        allowHalfOpen: true
-    });
+    var client = new net.Socket();
 
     client.connect(sensorObj.port, sensorObj.ip, function() {
         client.write('Get Infos');
@@ -44,5 +42,9 @@ function fireSocket(sensorObj, callback) {
 
     client.on('close', function() {
         console.log('Connection closed');
+    });
+    client.on('error',function(err){
+      console.log("ERROR", err);
+      callback(new Sensor(sensorObj.name, sensorObj.x, sensorObj.y, JSON.parse('[]')));
     });
 }
