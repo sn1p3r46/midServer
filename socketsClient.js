@@ -4,12 +4,12 @@ var Sensor = require('./Sensor');
 
 
 module.exports = function(conf) {
-    var data = fs.readFileSync('./conf_vars.json', 'utf8');
+    var data = fs.readFileSync('./conf_vars_PI.json', 'utf8');
         if (!data) throw new Error("Can't read configuration file");
         else {
             var cfv = JSON.parse(data);
             return {
-                getData: function getStationsData(callback) {
+                getData: function getStationsData(reqData ,callback) {
                     var result = [];
                     var callback_manager = function(data) {
                         result.push(data);
@@ -18,7 +18,7 @@ module.exports = function(conf) {
                     };
 
                     for (var i = 0; i < cfv.length; i++) {
-                        fireSocket(cfv[i], callback_manager);
+                        fireSocket(cfv[i], reqData, callback_manager);
                     }
 
                 }
@@ -27,12 +27,12 @@ module.exports = function(conf) {
 };
 
 
-function fireSocket(sensorObj, callback) {
+function fireSocket(sensorObj, reqData, callback) {
     console.log("Socket Fired @ ", sensorObj.ip, sensorObj.port);
     var client = new net.Socket();
 
     client.connect(sensorObj.port, sensorObj.ip, function() {
-        client.write('Get Infos');
+        client.write(reqData);
     });
 
     client.on('data', function(data) {
