@@ -13,6 +13,8 @@ var thePort = process.env.npm_package_config_port;
 
 var http = require("http");
 var url = require('url');
+var fs = require('fs');
+var execSync = require('child_process').execSync;
 var socketsClient = require('./socketsClient')();
 
 var server = http.createServer(function(request, response) {
@@ -33,7 +35,13 @@ var server = http.createServer(function(request, response) {
               response.writeHead(200, {
                   'Content-Type': 'text'
               });
-              response.write(JSON.stringify(data));
+
+              fs.writeFileSync('input.txt', JSON.stringify(data));
+
+              execSync("python2.7 tri.py");
+
+              var theCordinates = fs.readFileSync('output.txt').toString();
+              response.write(JSON.stringify(theCordinates));
               response.end();
           });
             break;
