@@ -4,7 +4,7 @@ var Sensor = require('./Sensor');
 
 
 module.exports = function(conf) {
-    var data = fs.readFileSync('./conf_vars_PI.json', 'utf8');
+    var data = fs.readFileSync('./conf_vars.json', 'utf8');
         if (!data) throw new Error("Can't read configuration file");
         else {
             var cfv = JSON.parse(data);
